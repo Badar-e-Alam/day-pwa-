@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  
+  <!-- PWA Meta -->
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="background-color" content="#0a0a0a" />
+  <meta name="description" content="Plan your day with intention. Time blocks, habits, trackers & journal." />
+  
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="day." />
+  <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+  
+  <!-- Android PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  
+  <title>day.</title>
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #root {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: #0a0a0a;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+    /* iOS safe area */
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+    /* Hide scrollbars but allow scroll */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    /* Splash screen while JS loads */
+    #splash {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: #0a0a0a;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Caveat', cursive;
+      font-size: 48px; font-weight: 700; color: #f0f0f0;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+    #splash span { color: #E8590C; }
+  </style>
+</head>
+<body>
+  <div id="splash">day<span>.</span></div>
+  <div id="root"></div>
+
+  <!-- Vite injects scripts here in dev/build -->
+  <script type="module" src="/src/main.jsx"></script>
+
+  <script>
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => {
+            console.log('SW registered:', reg.scope);
+          })
+          .catch((err) => {
+            console.log('SW registration failed:', err);
+          });
+      });
+    }
+
+    // Hide splash when app renders
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('splash');
+        if (splash) {
+          splash.style.opacity = '0';
+          setTimeout(() => splash.remove(), 300);
+        }
+      }, 500);
+    });
+
+    // iOS install prompt hint (no native prompt on iOS)
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // You can show a custom install button using this
+      window.deferredPrompt = deferredPrompt;
+    });
+  </script>
+</body>
+</html>
