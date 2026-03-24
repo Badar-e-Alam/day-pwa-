@@ -178,38 +178,12 @@ export default function App() {
   const [bold, setBold] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [mob, setMob] = useState(window.innerWidth < 768);
-  const [leftCol, setLeftCol] = useState(28);
-  const gridRef = useRef(null);
+  const [zoom, setZoom] = useState(100);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
     window.addEventListener("resize", h);
     return () => window.removeEventListener("resize", h);
-  }, []);
-
-  const startDrag = useCallback((e) => {
-    e.preventDefault();
-    const container = gridRef.current;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
-    const onMove = (me) => {
-      const cx = (me.clientX || me.touches?.[0]?.clientX) - rect.left;
-      setLeftCol(Math.max(15, Math.min(50, (cx / rect.width) * 100)));
-    };
-    const onUp = () => {
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-      document.removeEventListener("touchmove", onMove);
-      document.removeEventListener("touchend", onUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-    document.addEventListener("touchmove", onMove);
-    document.addEventListener("touchend", onUp);
   }, []);
 
   /* ── Supabase auth listener — handles login, logout, and returning from OAuth redirect ── */
@@ -311,6 +285,11 @@ export default function App() {
           <button onClick={() => setDate(addD(date, 1))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: mob ? 18 : 20, padding: "2px 4px" }}>›</button>
         </div>
         <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center", position: "relative", zIndex: 51 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 2, border: bdr, borderRadius: 5, overflow: "hidden" }}>
+            <button onClick={() => setZoom(z => Math.max(50, z - 10))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: mob ? 14 : 16, fontFamily: MN, padding: mob ? "4px 6px" : "2px 6px", minHeight: 32, touchAction: "manipulation" }}>−</button>
+            <span style={{ fontSize: 11, color: "#555", fontFamily: MN, minWidth: 32, textAlign: "center" }}>{zoom}%</span>
+            <button onClick={() => setZoom(z => Math.min(150, z + 10))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: mob ? 14 : 16, fontFamily: MN, padding: mob ? "4px 6px" : "2px 6px", minHeight: 32, touchAction: "manipulation" }}>+</button>
+          </div>
           <button onClick={() => setVw(vw === "grid" ? "history" : "grid")} style={{ background: "none", border: bdr, borderRadius: 5, padding: mob ? "6px 10px" : "3px 10px", color: vw === "history" ? O : "#555", cursor: "pointer", fontSize: mob ? 13 : 14, fontFamily: CV, fontWeight: 700, minHeight: 32, touchAction: "manipulation" }}>
             {vw === "grid" ? "History" : "Grid"}
           </button>
@@ -348,51 +327,47 @@ export default function App() {
            │   HABITS   │     DIARY / NOTES        │  2fr
            └────────────┴─────────────────────────┘
            ═══════════════════════════════════════ */
-        <div ref={gridRef} style={mob ? {
-          flex: 1,
+        <div style={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+        <div style={mob ? {
           display: "flex",
           flexDirection: "column",
-          overflowY: "auto",
-          overflowX: "hidden",
-          minHeight: 0
+          transform: `scale(${zoom / 100})`,
+          transformOrigin: "top left",
+          width: `${10000 / zoom}%`,
+          minHeight: `${10000 / zoom}%`
         } : {
-          flex: 1,
           display: "grid",
-          gridTemplateColumns: `${leftCol}% 4px 1fr`,
+          gridTemplateColumns: "2fr 5fr",
           gridTemplateRows: "auto 3fr 2fr",
-          overflow: "hidden",
-          minHeight: 0,
-          position: "relative"
+          transform: `scale(${zoom / 100})`,
+          transformOrigin: "top left",
+          width: `${10000 / zoom}%`,
+          height: `${10000 / zoom}%`
         }}>
 
           {/* ── R1: MAIN FOCUS ── */}
-          <div style={{ gridColumn: "1 / -1", gridRow: 1, background: "#0f0f0f", padding: "10px 14px", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <div style={{ gridColumn: "1 / -1", background: "#0f0f0f", padding: "10px 14px", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "auto" }}>
             <SH name={gm("f").name || "My Main Focus"} color={gm("f").color} onN={n => setM("f", { name: n })} onC={c => setM("f", { color: c })} />
             <textarea value={day.mf} onChange={e => up({ mf: e.target.value })} placeholder="One thing I REALLY need to get done..." rows={1}
               style={{ ...inp, fontSize: 22, fontWeight: 600, resize: "none", padding: 0, lineHeight: 1.3, width: "100%" }} />
           </div>
 
           {/* ── R2 LEFT: TIME BLOCKS ── */}
-          <div style={{ gridColumn: 1, gridRow: 2, background: "#0f0f0f", padding: "8px 10px", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <div style={{ background: "#0f0f0f", padding: "8px 10px", borderRight: bdr, borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
             <SH name={gm("t").name || "Time Block"} color={gm("t").color} onN={n => setM("t", { name: n })} onC={c => setM("t", { color: c })} />
             <div style={{ overflow: "auto", flex: 1, minHeight: 0 }}>
               {day.tb.map((b, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 0", borderBottom: i < 16 ? "1px solid #141414" : "none", minWidth: "max-content" }}>
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 0", borderBottom: i < 16 ? "1px solid #141414" : "none" }}>
                   <span style={{ fontSize: 11, fontFamily: MN, color: "#555", width: 34, textAlign: "right", flexShrink: 0 }}>{String(b.h).padStart(2, "0")}:00</span>
                   <input value={b.l} onChange={e => { const t = [...day.tb]; t[i] = { ...t[i], l: e.target.value }; up({ tb: t }); }} placeholder="—"
-                    style={{ ...inp, flex: 1, fontSize: 15, padding: "3px 2px", minWidth: 120 }} />
+                    style={{ ...inp, flex: 1, fontSize: 15, padding: "3px 2px", minWidth: 0 }} />
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ── DRAG HANDLE R2 ── */}
-          {!mob && <div onMouseDown={startDrag} onTouchStart={startDrag} style={{ gridColumn: 2, gridRow: "2 / 4", cursor: "col-resize", background: "#1e1e1e", width: 4, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, touchAction: "none" }}>
-            <div style={{ width: 2, height: 32, borderRadius: 1, background: "#444" }} />
-          </div>}
-
           {/* ── R2 RIGHT: Tasks top, Todo|Trackers bottom ── */}
-          <div style={{ gridColumn: 3, gridRow: 2, background: "#0f0f0f", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <div style={{ background: "#0f0f0f", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
 
             {/* Three Smaller Tasks — fixed height */}
             <div style={{ padding: "8px 14px", borderBottom: bdr, flexShrink: 0 }}>
@@ -409,10 +384,10 @@ export default function App() {
             {/* FIX: Todo and Trackers share remaining space EQUALLY */}
             <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", minHeight: 0, overflow: "hidden" }}>
 
-              {/* To-Do — now has proper scrollable space */}
+              {/* To-Do */}
               <div style={{ padding: "8px 12px", borderRight: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
                 <SH name={gm("td").name || "To-Do"} color={gm("td").color} onN={n => setM("td", { name: n })} onC={c => setM("td", { color: c })} />
-                <div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
+                <div style={{ overflow: "auto", flex: 1, minHeight: 0 }}>
                   {tds.map((t, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
                       <button onClick={() => { const d = [...tds]; d[i] = { ...d[i], d: !d[i].d }; up({ td: d }); }} style={{
@@ -432,7 +407,7 @@ export default function App() {
               {/* Trackers */}
               <div style={{ padding: "8px 12px", display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 <SH name={gm("tr").name || "Trackers"} color={gm("tr").color} onN={n => setM("tr", { name: n })} onC={c => setM("tr", { color: c })} />
-                <div style={{ overflowY: "auto", flex: 1 }}>
+                <div style={{ overflow: "auto", flex: 1 }}>
                   <Dots label="Energy" v={day.tr.energy} ac={gm("tr").color} set={v => up({ tr: { ...day.tr, energy: v } })} />
                   <Dots label="Sleep" v={day.tr.sleep} ac={gm("tr").color} set={v => up({ tr: { ...day.tr, sleep: v } })} />
                   <Dots label="Productivity" v={day.tr.prod} ac={gm("tr").color} set={v => up({ tr: { ...day.tr, prod: v } })} />
@@ -442,9 +417,9 @@ export default function App() {
           </div>
 
           {/* ── R3 LEFT: HABITS ── */}
-          <div style={{ gridColumn: 1, gridRow: 3, background: "#0f0f0f", padding: "8px 10px", display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <div style={{ background: "#0f0f0f", padding: "8px 10px", borderRight: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
             <SH name={gm("h").name || "Habits"} color={gm("h").color} onN={n => setM("h", { name: n })} onC={c => setM("h", { color: c })} />
-            <div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
+            <div style={{ overflow: "auto", flex: 1, minHeight: 0 }}>
               {day.hb.map((h, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 0", borderBottom: i < day.hb.length - 1 ? "1px solid #141414" : "none" }}>
                   <button onClick={() => { const b = [...day.hb]; b[i] = { ...b[i], d: !b[i].d }; up({ hb: b }); }} style={{
@@ -464,8 +439,8 @@ export default function App() {
             </div>
           </div>
 
-          {/* ── R3 RIGHT: DIARY / NOTES — FIX: balanced size, draw is toggle-able ── */}
-          <div style={{ gridColumn: 3, gridRow: 3, background: "#0f0f0f", padding: "8px 14px", display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          {/* ── R3 RIGHT: DIARY / NOTES ── */}
+          <div style={{ background: "#0f0f0f", padding: "8px 14px", display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
             <SH name={gm("n").name || "Diary / Notes"} color={gm("n").color} onN={n => setM("n", { name: n })} onC={c => setM("n", { color: c })} />
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, minHeight: 0, overflow: "hidden" }}>
               {/* Toolbar: bold + draw toggle */}
@@ -496,6 +471,7 @@ export default function App() {
             </div>
           </div>
 
+        </div>
         </div>
       )}
     </div>
