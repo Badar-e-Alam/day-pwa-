@@ -141,7 +141,7 @@ function Auth({ onAuth }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0a0a", fontFamily: CV, padding: 24 }}>
+    <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0a0a", fontFamily: CV, padding: 24 }}>
       <div style={{ width: "100%", maxWidth: 320 }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <div style={{ fontSize: 48, fontWeight: 700, color: "#f0f0f0" }}>day<span style={{ color: O }}>.</span></div>
@@ -177,6 +177,40 @@ export default function App() {
   const [sm, setSm] = useState({});
   const [bold, setBold] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
+  const [mob, setMob] = useState(window.innerWidth < 768);
+  const [leftCol, setLeftCol] = useState(28);
+  const gridRef = useRef(null);
+
+  useEffect(() => {
+    const h = () => setMob(window.innerWidth < 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+
+  const startDrag = useCallback((e) => {
+    e.preventDefault();
+    const container = gridRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const onMove = (me) => {
+      const cx = (me.clientX || me.touches?.[0]?.clientX) - rect.left;
+      setLeftCol(Math.max(15, Math.min(50, (cx / rect.width) * 100)));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchend", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    document.addEventListener("touchmove", onMove);
+    document.addEventListener("touchend", onUp);
+  }, []);
 
   /* ── Supabase auth listener — handles login, logout, and returning from OAuth redirect ── */
   useEffect(() => {
@@ -248,7 +282,7 @@ export default function App() {
   const tds = (day.td || []).map(t => typeof t === "string" ? { t: t.replace("✓", ""), d: t.startsWith("✓") } : t);
 
   if (!ok || authLoading) return (
-    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0a0a", fontFamily: CV }}>
+    <div style={{ height: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0a0a", fontFamily: CV }}>
       <span style={{ fontSize: 28, fontWeight: 700, color: "#f0f0f0" }}>day<span style={{ color: O }}>.</span></span>
     </div>
   );
@@ -261,26 +295,26 @@ export default function App() {
   const inp = { background: "transparent", border: "none", color: "#e8e8e8", fontFamily: CV, outline: "none", boxSizing: "border-box" };
 
   return (
-    <div style={{ height: "100vh", width: "100vw", display: "flex", flexDirection: "column", background: "#0a0a0a", fontFamily: CV, color: "#e8e8e8", overflow: "hidden", position: "fixed", top: 0, left: 0 }}>
+    <div style={{ height: "100dvh", width: "100vw", display: "flex", flexDirection: "column", background: "#0a0a0a", fontFamily: CV, color: "#e8e8e8", overflow: "hidden", position: "fixed", top: 0, left: 0 }}>
 
       {/* ═══ HEADER ═══ */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 12px", borderBottom: bdr, flexShrink: 0, background: "#0a0a0a", zIndex: 50 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 20, fontWeight: 700 }}>day<span style={{ color: O }}>.</span></span>
-          {sk > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: O, background: "#1a0f08", padding: "1px 7px", borderRadius: 10 }}>{sk}d</span>}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: mob ? "4px 6px" : "6px 12px", borderBottom: bdr, flexShrink: 0, background: "#0a0a0a", zIndex: 50, gap: 4 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          <span style={{ fontSize: mob ? 16 : 20, fontWeight: 700 }}>day<span style={{ color: O }}>.</span></span>
+          {sk > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: O, background: "#1a0f08", padding: "1px 5px", borderRadius: 10 }}>{sk}d</span>}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <button onClick={() => setDate(addD(date, -1))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: 20, padding: "2px 8px" }}>‹</button>
-          <button onClick={() => setDate(new Date())} style={{ background: "none", border: "none", cursor: "pointer" }}>
-            <span style={{ fontSize: 16, fontWeight: 600, color: isNow(date) ? O : "#e8e8e8", fontFamily: CV }}>{date.toLocaleDateString("en", { weekday: "short", month: "short", day: "numeric" })}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 0, flexShrink: 1, minWidth: 0 }}>
+          <button onClick={() => setDate(addD(date, -1))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: mob ? 18 : 20, padding: "2px 4px" }}>‹</button>
+          <button onClick={() => setDate(new Date())} style={{ background: "none", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: mob ? 13 : 16, fontWeight: 600, color: isNow(date) ? O : "#e8e8e8", fontFamily: CV }}>{date.toLocaleDateString("en", { weekday: "short", month: "short", day: "numeric" })}</span>
           </button>
-          <button onClick={() => setDate(addD(date, 1))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: 20, padding: "2px 8px" }}>›</button>
+          <button onClick={() => setDate(addD(date, 1))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: mob ? 18 : 20, padding: "2px 4px" }}>›</button>
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
-          <button onClick={() => setVw(vw === "grid" ? "history" : "grid")} style={{ background: "none", border: bdr, borderRadius: 5, padding: "3px 10px", color: vw === "history" ? O : "#555", cursor: "pointer", fontSize: 14, fontFamily: CV, fontWeight: 700 }}>
+        <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center", position: "relative", zIndex: 51 }}>
+          <button onClick={() => setVw(vw === "grid" ? "history" : "grid")} style={{ background: "none", border: bdr, borderRadius: 5, padding: mob ? "6px 10px" : "3px 10px", color: vw === "history" ? O : "#555", cursor: "pointer", fontSize: mob ? 13 : 14, fontFamily: CV, fontWeight: 700, minHeight: 32, touchAction: "manipulation" }}>
             {vw === "grid" ? "History" : "Grid"}
           </button>
-          <button onClick={async () => { await supabase.auth.signOut(); setUser(null); localStorage.removeItem("du"); }} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: 14, fontFamily: CV, fontWeight: 600 }}>Sign out</button>
+          <button onClick={async () => { await supabase.auth.signOut(); setUser(null); localStorage.removeItem("du"); }} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: mob ? 13 : 14, fontFamily: CV, fontWeight: 600, whiteSpace: "nowrap", minHeight: 32, padding: mob ? "6px 8px" : "3px 6px", touchAction: "manipulation" }}>Sign out</button>
         </div>
       </div>
 
@@ -314,38 +348,51 @@ export default function App() {
            │   HABITS   │     DIARY / NOTES        │  2fr
            └────────────┴─────────────────────────┘
            ═══════════════════════════════════════ */
-        <div style={{
+        <div ref={gridRef} style={mob ? {
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflowY: "auto",
+          overflowX: "hidden",
+          minHeight: 0
+        } : {
           flex: 1,
           display: "grid",
-          gridTemplateColumns: "2fr 5fr",
+          gridTemplateColumns: `${leftCol}% 4px 1fr`,
           gridTemplateRows: "auto 3fr 2fr",
           overflow: "hidden",
-          minHeight: 0
+          minHeight: 0,
+          position: "relative"
         }}>
 
           {/* ── R1: MAIN FOCUS ── */}
-          <div style={{ gridColumn: "1 / -1", background: "#0f0f0f", padding: "10px 14px", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <div style={{ gridColumn: "1 / -1", gridRow: 1, background: "#0f0f0f", padding: "10px 14px", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <SH name={gm("f").name || "My Main Focus"} color={gm("f").color} onN={n => setM("f", { name: n })} onC={c => setM("f", { color: c })} />
             <textarea value={day.mf} onChange={e => up({ mf: e.target.value })} placeholder="One thing I REALLY need to get done..." rows={1}
               style={{ ...inp, fontSize: 22, fontWeight: 600, resize: "none", padding: 0, lineHeight: 1.3, width: "100%" }} />
           </div>
 
           {/* ── R2 LEFT: TIME BLOCKS ── */}
-          <div style={{ background: "#0f0f0f", padding: "8px 10px", borderRight: bdr, borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <div style={{ gridColumn: 1, gridRow: 2, background: "#0f0f0f", padding: "8px 10px", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
             <SH name={gm("t").name || "Time Block"} color={gm("t").color} onN={n => setM("t", { name: n })} onC={c => setM("t", { color: c })} />
-            <div style={{ overflowY: "auto", flex: 1 }}>
+            <div style={{ overflow: "auto", flex: 1, minHeight: 0 }}>
               {day.tb.map((b, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 0", borderBottom: i < 16 ? "1px solid #141414" : "none" }}>
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 0", borderBottom: i < 16 ? "1px solid #141414" : "none", minWidth: "max-content" }}>
                   <span style={{ fontSize: 11, fontFamily: MN, color: "#555", width: 34, textAlign: "right", flexShrink: 0 }}>{String(b.h).padStart(2, "0")}:00</span>
                   <input value={b.l} onChange={e => { const t = [...day.tb]; t[i] = { ...t[i], l: e.target.value }; up({ tb: t }); }} placeholder="—"
-                    style={{ ...inp, flex: 1, fontSize: 15, padding: "3px 2px", minWidth: 0 }} />
+                    style={{ ...inp, flex: 1, fontSize: 15, padding: "3px 2px", minWidth: 120 }} />
                 </div>
               ))}
             </div>
           </div>
 
+          {/* ── DRAG HANDLE R2 ── */}
+          {!mob && <div onMouseDown={startDrag} onTouchStart={startDrag} style={{ gridColumn: 2, gridRow: "2 / 4", cursor: "col-resize", background: "#1e1e1e", width: 4, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, touchAction: "none" }}>
+            <div style={{ width: 2, height: 32, borderRadius: 1, background: "#444" }} />
+          </div>}
+
           {/* ── R2 RIGHT: Tasks top, Todo|Trackers bottom ── */}
-          <div style={{ background: "#0f0f0f", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <div style={{ gridColumn: 3, gridRow: 2, background: "#0f0f0f", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
 
             {/* Three Smaller Tasks — fixed height */}
             <div style={{ padding: "8px 14px", borderBottom: bdr, flexShrink: 0 }}>
@@ -395,7 +442,7 @@ export default function App() {
           </div>
 
           {/* ── R3 LEFT: HABITS ── */}
-          <div style={{ background: "#0f0f0f", padding: "8px 10px", borderRight: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <div style={{ gridColumn: 1, gridRow: 3, background: "#0f0f0f", padding: "8px 10px", display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
             <SH name={gm("h").name || "Habits"} color={gm("h").color} onN={n => setM("h", { name: n })} onC={c => setM("h", { color: c })} />
             <div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
               {day.hb.map((h, i) => (
@@ -418,7 +465,7 @@ export default function App() {
           </div>
 
           {/* ── R3 RIGHT: DIARY / NOTES — FIX: balanced size, draw is toggle-able ── */}
-          <div style={{ background: "#0f0f0f", padding: "8px 14px", display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <div style={{ gridColumn: 3, gridRow: 3, background: "#0f0f0f", padding: "8px 14px", display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
             <SH name={gm("n").name || "Diary / Notes"} color={gm("n").color} onN={n => setM("n", { name: n })} onC={c => setM("n", { color: c })} />
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, minHeight: 0, overflow: "hidden" }}>
               {/* Toolbar: bold + draw toggle */}
