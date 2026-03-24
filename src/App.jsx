@@ -285,10 +285,10 @@ export default function App() {
           <button onClick={() => setDate(addD(date, 1))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: mob ? 18 : 20, padding: "2px 4px" }}>›</button>
         </div>
         <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center", position: "relative", zIndex: 51 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 2, border: bdr, borderRadius: 5, overflow: "hidden" }}>
-            <button onClick={() => setZoom(z => Math.max(50, z - 10))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: mob ? 14 : 16, fontFamily: MN, padding: mob ? "4px 6px" : "2px 6px", minHeight: 32, touchAction: "manipulation" }}>−</button>
-            <span style={{ fontSize: 11, color: "#555", fontFamily: MN, minWidth: 32, textAlign: "center" }}>{zoom}%</span>
-            <button onClick={() => setZoom(z => Math.min(150, z + 10))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: mob ? 14 : 16, fontFamily: MN, padding: mob ? "4px 6px" : "2px 6px", minHeight: 32, touchAction: "manipulation" }}>+</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 0, border: bdr, borderRadius: 5, overflow: "hidden" }}>
+            <button onClick={() => setZoom(z => Math.max(50, z - 10))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: 14, fontFamily: MN, padding: "2px 5px", minHeight: 28, touchAction: "manipulation" }}>−</button>
+            {!mob && <span style={{ fontSize: 10, color: "#555", fontFamily: MN, minWidth: 28, textAlign: "center" }}>{zoom}%</span>}
+            <button onClick={() => setZoom(z => Math.min(150, z + 10))} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: 14, fontFamily: MN, padding: "2px 5px", minHeight: 28, touchAction: "manipulation" }}>+</button>
           </div>
           <button onClick={() => setVw(vw === "grid" ? "history" : "grid")} style={{ background: "none", border: bdr, borderRadius: 5, padding: mob ? "6px 10px" : "3px 10px", color: vw === "history" ? O : "#555", cursor: "pointer", fontSize: mob ? 13 : 14, fontFamily: CV, fontWeight: 700, minHeight: 32, touchAction: "manipulation" }}>
             {vw === "grid" ? "History" : "Grid"}
@@ -346,14 +346,14 @@ export default function App() {
         }}>
 
           {/* ── R1: MAIN FOCUS ── */}
-          <div style={{ gridColumn: "1 / -1", background: "#0f0f0f", padding: "10px 14px", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "auto" }}>
+          <div style={{ gridColumn: "1 / -1", background: "#0f0f0f", padding: "10px 14px", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "auto", ...(mob && { flexShrink: 0 }) }}>
             <SH name={gm("f").name || "My Main Focus"} color={gm("f").color} onN={n => setM("f", { name: n })} onC={c => setM("f", { color: c })} />
             <textarea value={day.mf} onChange={e => up({ mf: e.target.value })} placeholder="One thing I REALLY need to get done..." rows={1}
               style={{ ...inp, fontSize: 22, fontWeight: 600, resize: "none", padding: 0, lineHeight: 1.3, width: "100%" }} />
           </div>
 
           {/* ── R2 LEFT: TIME BLOCKS ── */}
-          <div style={{ background: "#0f0f0f", padding: "8px 10px", borderRight: bdr, borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <div style={{ background: "#0f0f0f", padding: "8px 10px", borderRight: mob ? "none" : bdr, borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0, ...(mob && { maxHeight: 220 }) }}>
             <SH name={gm("t").name || "Time Block"} color={gm("t").color} onN={n => setM("t", { name: n })} onC={c => setM("t", { color: c })} />
             <div style={{ overflow: "auto", flex: 1, minHeight: 0 }}>
               {day.tb.map((b, i) => (
@@ -367,7 +367,7 @@ export default function App() {
           </div>
 
           {/* ── R2 RIGHT: Tasks top, Todo|Trackers bottom ── */}
-          <div style={{ background: "#0f0f0f", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <div style={{ background: "#0f0f0f", borderBottom: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0, ...(mob && { maxHeight: 320 }) }}>
 
             {/* Three Smaller Tasks — fixed height */}
             <div style={{ padding: "8px 14px", borderBottom: bdr, flexShrink: 0 }}>
@@ -417,7 +417,7 @@ export default function App() {
           </div>
 
           {/* ── R3 LEFT: HABITS ── */}
-          <div style={{ background: "#0f0f0f", padding: "8px 10px", borderRight: bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <div style={{ background: "#0f0f0f", padding: "8px 10px", borderRight: mob ? "none" : bdr, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0, ...(mob && { maxHeight: 220 }) }}>
             <SH name={gm("h").name || "Habits"} color={gm("h").color} onN={n => setM("h", { name: n })} onC={c => setM("h", { color: c })} />
             <div style={{ overflow: "auto", flex: 1, minHeight: 0 }}>
               {day.hb.map((h, i) => (
@@ -440,7 +440,7 @@ export default function App() {
           </div>
 
           {/* ── R3 RIGHT: DIARY / NOTES ── */}
-          <div style={{ background: "#0f0f0f", padding: "8px 14px", display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <div style={{ background: "#0f0f0f", padding: "8px 14px", display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0, ...(mob && { minHeight: 200 }) }}>
             <SH name={gm("n").name || "Diary / Notes"} color={gm("n").color} onN={n => setM("n", { name: n })} onC={c => setM("n", { color: c })} />
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, minHeight: 0, overflow: "hidden" }}>
               {/* Toolbar: bold + draw toggle */}
