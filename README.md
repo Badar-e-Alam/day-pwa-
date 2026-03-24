@@ -4,15 +4,12 @@
 
 A free, open-source daily planner that puts you in charge of your schedule. No subscriptions, no paywalls, no data harvesting. Just a clean tool to plan your day with intention.
 
-> *"Software is like sex: it's better when it's free."*
-> — Linus Torvalds
-
 > *"Either write something worth reading or do something worth writing."*
 > — Benjamin Franklin
 
 ---
 
-## Why day.?
+## Why day?
 
 Most planning apps want your money, your data, or both. **day.** wants neither.
 
